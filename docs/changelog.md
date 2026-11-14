@@ -14,6 +14,7 @@
 - Several numbers of dopants in one run (`-nd 0:3`), with separate statistics.
 - `-mod`: several statements separated by `;`, and `dopant` as the reference also for vacancies.
 - Sequential doping with `-nl`, with several input files and with several picked configurations; equivalent structures are merged within a step and not picked twice (`-ssym`).
+- Interstitial sites (`-ai`): `wyckoff.dat` is distributed with the package; works with `-wl` and `-seq`; only parameter-free Wyckoff positions are added.
 - New options: `-pot`, `-ssym`, `--wyckoff_file`, `-q`, `--version`.
 
 **Bug fixes** (see [Fixed bugs and known issues](known_issues.md))

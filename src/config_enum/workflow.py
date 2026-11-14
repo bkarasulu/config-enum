@@ -97,7 +97,8 @@ class ConfigResult:
     sites: list = field(default_factory=list)  # indices of the doped atoms in the input structure
     degeneracy: int = 1
     atoms: object = None           # initial structure (dopants on the lattice sites, not optimised)
-    atoms_list: list = field(default_factory=list)  # selected sites still available in this structure
+    atoms_list: list = field(default_factory=list)  # selected sites still available (indices in next_atoms)
+    next_atoms: object = None      # the structure passed on to the next step (as atoms, plus the unused interstices)
     file: str = ''                 # structure file, relative to the run folder
     energy: float = None
     E_reduced: float = None        # energy - kT ln(degeneracy)
@@ -360,10 +361,14 @@ class EnumWorkflow:
             confs, degens = enumerate_configs(atoms, atoms_list, nD, all_W, all_w, tol=cfg.tol, aType=cfg.aType)
             say("%d symmetrically-unique configuration(s) for %d vacancies/dopants; time: %.2f sec." % (len(confs), nD, time.time() - initT1))
             for conf, deg in zip(confs, degens):
-                new, new_list = apply_dopants(atoms, conf, cfg.dType, eList=dexcl, dexcl_type=cfg.dexcl_type, atoms_list=atoms_list,
-                                              mods=mods, delete_X=bool(cfg.aType and 'X' in cfg.aType))
+                # the unused interstices (X) are kept in the structure passed on to the next step, and removed from the output
+                full, new_list = apply_dopants(atoms, conf, cfg.dType, eList=dexcl, dexcl_type=cfg.dexcl_type, atoms_list=atoms_list, mods=mods)
+                new = full
+                if cfg.aType and 'X' in cfg.aType and 'X' in full.get_chemical_symbols():
+                    new = full.copy()
+                    del new[[atom.index for atom in new if atom.symbol == 'X']]
                 configs.append(ConfigResult(step=step, input_index=find, nD=nD, sites=list(conf) + [e for e in dexcl if e not in conf],
-                                            degeneracy=int(deg), atoms=new, atoms_list=new_list))
+                                            degeneracy=int(deg), atoms=new, atoms_list=new_list, next_atoms=full))
         return configs
 
     def structure_keys(self, configs, root):
@@ -671,7 +676,7 @@ class EnumWorkflow:
             say('Done with Step %d...' % step)
             say("Elapsed time for Step %d: %.2f sec.\n" % (step, time.time() - initT))
             # the picked configs are the input structures of the next step
-            inputs = [InputStructure(path=c.file, atoms=c.atoms, atoms_list=c.atoms_list, root=c.root) for c in sres.picked]
+            inputs = [InputStructure(path=c.file, atoms=c.next_atoms, atoms_list=c.atoms_list, root=c.root) for c in sres.picked]
             # End of sequential loop
 
         say("Total elapsed time: %.2f sec." % (time.time() - initT0))

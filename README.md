@@ -39,6 +39,9 @@ config_enum -i LiCoO2.cif -r 2 2 1 -dry -dt Va -nd 1
 # a quick functionality test with a simple potential (seconds): two Au atoms in a 32-atom Cu cell
 config_enum -i Cu.cif -r 2 2 2 -at Cu -dt Au -nd 2 -pot EMT
 
+# H on the interstitial sites of fcc Cu (octahedral, tetrahedral, ...)
+config_enum -i Cu.cif -ai -at X -dt H -nd 1 -pot EMT
+
 # Li vacancies with a machine-learning potential (MACE-MP-0 foundation model; GPU used if available),
 # relaxing each configuration
 config_enum -i LiCoO2.cif -r 2 2 1 -at Li -dt Va -nd 1:3 --mlip mace --mlip_model medium-mpa-0 -opt

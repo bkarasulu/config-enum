@@ -200,17 +200,23 @@ def find_equisites(atoms, all_W, all_w, tol=1e-6):
     return [int(x) for x in equiSites]
 
 
+BUNDLED_WYCKOFF = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'wyckoff.dat')
+
+
 def wyckoff_file_path(wyckoff_file=None):
-    """Location of wyckoff.dat: the argument, $CONFIG_ENUM_WYCKOFF or $HOME/wyckoff.dat (as in the original script)."""
-    return wyckoff_file or os.environ.get('CONFIG_ENUM_WYCKOFF') or os.path.join(os.path.expanduser('~'), 'wyckoff.dat')
+    """Location of wyckoff.dat: the argument, $CONFIG_ENUM_WYCKOFF, $HOME/wyckoff.dat (as in the original script) if it
+    exists, or the file distributed with the package."""
+    home = os.path.join(os.path.expanduser('~'), 'wyckoff.dat')
+    return wyckoff_file or os.environ.get('CONFIG_ENUM_WYCKOFF') or (home if os.path.exists(home) else BUNDLED_WYCKOFF)
 
 
-def read_wyckoff_data(fname, sgno):
+def read_wyckoff_data(fname, sgno, fixed_only=False):
     """Read the Wyckoff positions of space group `sgno` from wyckoff.dat.
 
-    Format: a header line per space-group setting ('<number> <setting> ...', more than five columns), then for each
-    Wyckoff position a line '<multiplicity> <letter> <site symmetry>' followed by lines of coordinates
-    '(x,y,z) (-x,-y,z) ...'; the settings are separated by empty lines. The free parameters (x, y, z) are set to 0.
+    Format (as in the file taken from VESTA): a header line per space-group setting ('<number> <setting> ... <symbol>'),
+    then for each Wyckoff position a line '<multiplicity> <letter> <site symmetry>' followed by lines of coordinates
+    '(x,y,z) (-x,-y,z) ...'; the settings are separated by empty lines. The free parameters (x, y, z) are set to 0;
+    with fixed_only, the positions with free parameters are left out.
 
     Returns {'<number>-<setting>': {'4a': [[0., 0., 0.], ...], ...}}
     """
@@ -233,14 +239,19 @@ def read_wyckoff_data(fname, sgno):
                 tmp = {}
                 label = None
                 continue
-            elif len(x) == 3 and ln[0] != '(':
-                wyck = '%s%s' % (x[0], x[1])
+            elif ln[0] != '(' and len(x) >= 2 and x[0].isdigit() and len(x[1]) == 1 and x[1].isalpha():
+                wyck = '%s%s' % (x[0], x[1])  # the site symmetry can contain spaces, e.g. '48 i m.m 2'
                 tmp[wyck] = []
-            elif len(x) > 5 and ln[0] != '(':
+            elif ln[0] != '(' and len(x) > 5:
                 label = '%s-%s' % (x[0], x[1])
             elif ln[0] == '(':
                 for crd in x:  # TODO: Double check if the x,y,z and addition/substraction of fractions are handled correctly.
                     crd_bkp = deepcopy(crd)
+                    if fixed_only and any(v in crd for v in 'xyz'):
+                        tmp.pop(wyck, None)
+                        continue
+                    if wyck not in tmp:
+                        continue
                     crd = crd.strip('(').strip(')')
                     for v in ('-x', '-y', '-z', '+x', '+y', '+z', 'x', 'y', 'z'):
                         crd = crd.replace(v, '')
@@ -255,9 +266,11 @@ def read_wyckoff_data(fname, sgno):
 def find_interstices(atoms, tol=1e-6, sg=None, verb=None, wyckoff_file=None):
     """Add the unoccupied Wyckoff positions of the space group as X atoms (potential interstitial sites).
 
-    TODO: only compatible with conventional cells (not with primitive cells). Easiest solution: first add the
-    interstitials and then find the primitive cell. May not work with the repeated supercells (even with conventional
-    ones), start from standard cells.
+    Only the positions without free parameters (e.g. the octahedral and tetrahedral sites of fcc) are added.
+
+    TODO: only compatible with conventional cells (not with primitive cells) in the first setting of the space group
+    (e.g. origin choice 1). Easiest solution: first add the interstitials and then find the primitive cell. May not
+    work with the repeated supercells (even with conventional ones), start from standard cells.
 
     Args:
         atoms: structure (modified in place and returned).
@@ -281,7 +294,9 @@ def find_interstices(atoms, tol=1e-6, sg=None, verb=None, wyckoff_file=None):
         raise FileNotFoundError("The Wyckoff-position data file (%s) was not found; it is needed for adding the "
                                 "interstices (-ai). Give it with --wyckoff_file or $CONFIG_ENUM_WYCKOFF." % fname)
     out('\nReading %s...' % fname)
-    data = read_wyckoff_data(fname, SG.no)
+    # Only the Wyckoff positions without free parameters are used: a position such as (x,x,x) is a line of possible
+    # sites, and any single value of x (the original script used 0) would be an arbitrary choice.
+    data = read_wyckoff_data(fname, SG.no, fixed_only=True)
 
     data2 = {}
     for key in list(data.keys()):

@@ -220,13 +220,17 @@ def test_failed_calculations(tmp_path, cu_file):
 
 
 def test_interstitials(tmp_path, cu_file):
-    """-ai -at X: H on the interstices of fcc Cu (octahedral and tetrahedral sites)."""
-    from test_symmetry import WYCKOFF
-    (tmp_path / "wyckoff.dat").write_text(WYCKOFF)
-    res = run(tmp_path, cu_file, prog='lj', aType=['X'], addint=True, wyckoff_file=str(tmp_path / "wyckoff.dat"), dType='H', noDopants=[1])
-    assert len(res.configs) == 2 and sorted(c.degeneracy for c in res.configs) == [4, 8]
+    """-ai -at X: H on the interstices of fcc Cu (octahedral, tetrahedral and 24d sites), then two H by sequential doping."""
+    res = run(tmp_path, cu_file, prog='lj', aType=['X'], addint=True, dType='H', noDopants=[1])
+    assert sorted(c.degeneracy for c in res.configs) == [4, 8, 24]
     for c in res.configs:
         assert sorted(c.atoms.get_chemical_symbols()) == ['Cu'] * 4 + ['H']  # the unused interstices are removed
+    res = run(tmp_path, cu_file, prog='lj', overwrite=True, aType=['X'], wycklist=['4b'], addint=True, dType='H', noDopants=[1])
+    assert [c.degeneracy for c in res.configs] == [4]
+    # sequential doping: the interstices that are left are available in the next step
+    res = run(tmp_path, cu_file, prog='lj', overwrite=True, aType=['X'], wycklist=['4b'], addint=True, dType='H', noDopants=[2], seq=1)
+    assert len(res.steps) == 2 and sum(c.degeneracy for c in res.steps[1].configs) == 3
+    assert all(sorted(c.atoms.get_chemical_symbols()) == ['Cu'] * 4 + ['H'] * 2 for c in res.steps[1].configs)
     with pytest.raises(FileNotFoundError):
         run(tmp_path, cu_file, prog='lj', overwrite=True, aType=['X'], addint=True, wyckoff_file=str(tmp_path / "none.dat"), dType='H', noDopants=[1])
 

@@ -126,7 +126,7 @@ def build_parser():
 
     # Options added in the refactored version
     parser.add_argument("-ssym", "--seqsymm", type=str, choices=['current', 'ref'], default='current', help="Symmetry operations used after the first step of a sequential doping: 'current': those of the current (doped) structure; 'ref': those of the Step 1 (reference) structure, as in the original script (fewer configurations, but inequivalent ones can be merged). Def: current")
-    parser.add_argument("--wyckoff_file", type=str, default=None, help="File with the Wyckoff positions of the space groups, needed for -ai. Def: $CONFIG_ENUM_WYCKOFF or $HOME/wyckoff.dat")
+    parser.add_argument("--wyckoff_file", type=str, default=None, help="File with the Wyckoff positions of the space groups, used by -ai. Def: $CONFIG_ENUM_WYCKOFF, $HOME/wyckoff.dat if it exists, or the file distributed with the package")
     parser.add_argument('-q', '--quiet', default=False, action='store_true', help='Only show warnings and errors. Default: False.')
     parser.add_argument("--version", action="version", version="config_enum %s" % __version__)
 

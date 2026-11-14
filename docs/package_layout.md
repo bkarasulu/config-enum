@@ -36,7 +36,7 @@ Variable names of the original are kept where the code was moved: `atoms_list`, 
 | `-pot {LJ,Morse,EMT}` | The simple ASE potential used without `-vasp`, `-castep` or `--mlip` (default LJ, as before). |
 | `-opt`, `--fmax`, `--steps`, `--optimiser`, `--relax_cell` | Geometry optimisation with the ASE-based engines. |
 | `-ssym {current,ref}` | Symmetry used after the first step of a sequential doping, see [Theory](theory.md#sequential-doping). |
-| `--wyckoff_file FILE` | Location of `wyckoff.dat` for `-ai`. |
+| `--wyckoff_file FILE` | Another `wyckoff.dat` for `-ai` (default: the one in the package). |
 | `--input FILE`, `--save_input FILE` | [Input files](input_files.md). |
 | `-q`, `--version` | Quiet output; version. |
 

@@ -94,7 +94,7 @@ Every option except `--input`, `--save_input`, `--help` and `--version` can also
 | `-dry`, `--dry` |  | Dry run to get the equivalent (Wyckoff) positions. Default: False. |
 | `-noskip`, `--noskip` |  | Do not skip problematic configs (and assigning them with 0 energy and P1 symmetry). Default: Bad configs are skipped. |
 | `-ssym`, `--seqsymm` {current,ref} | `current` | Symmetry operations used after the first step of a sequential doping: 'current': those of the current (doped) structure; 'ref': those of the Step 1 (reference) structure, as in the original script (fewer configurations, but inequivalent ones can be merged). Def: current |
-| `--wyckoff_file` |  | File with the Wyckoff positions of the space groups, needed for -ai. Def: $CONFIG_ENUM_WYCKOFF or $HOME/wyckoff.dat |
+| `--wyckoff_file` |  | File with the Wyckoff positions of the space groups, used by -ai. Def: $CONFIG_ENUM_WYCKOFF, $HOME/wyckoff.dat if it exists, or the file distributed with the package |
 | `-q`, `--quiet` |  | Only show warnings and errors. Default: False. |
 | `--version` | `==SUPPRESS==` | show program's version number and exit |
 

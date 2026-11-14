@@ -33,19 +33,26 @@ Examples: `-mod 'remove Li nearest 1 of Al'` (one Li removed for each Al), `-mod
 
 ## Interstitial sites
 
-With `-ai -at X`, the unoccupied Wyckoff positions of the space group are added as `X` atoms before the enumeration, and `-dt` is placed on them. The `X` atoms that are not used are removed from the output.
+With `-ai -at X`, the unoccupied Wyckoff positions of the space group are added as `X` atoms before the enumeration, and `-dt` is placed on them. They appear in the list of sites and can be selected with `-wl`. The `X` atoms that are not used are removed from the output; in a sequential doping they stay available for the next steps.
 
-The positions are read from `wyckoff.dat` (`--wyckoff_file`, `$CONFIG_ENUM_WYCKOFF` or `$HOME/wyckoff.dat`): for each space-group setting a header line starting with the space-group number and the setting, then for each Wyckoff position a line `<multiplicity> <letter> <site symmetry>` followed by lines of coordinates in brackets; settings are separated by empty lines:
-
-```text
-225 1 F m -3 m Oh^5 cubic
-4 a m-3m
-(0,0,0)
-8 c -43m
-(1/4,1/4,1/4) (1/4,1/4,3/4)
+```bash
+config_enum -i Cu.cif -ai -at X -dt H -nd 1 -pot EMT        # H on the octahedral (4b), tetrahedral (8c) and 24d sites of fcc Cu
+config_enum -i Cu.cif -ai -at X -wl 4b -dt H -nd 2 -seq 1   # octahedral sites only, two H atoms one after the other
 ```
 
-Free parameters (x, y, z) are set to 0, and only the first setting is used, so this works for the special positions of conventional (standard) cells. Use it before `-prim`/`-r` are applied (they are applied afterwards automatically).
+Only the positions without free parameters are added (e.g. `4b`, `8c` and `24d` in Fm-3m, `8b`, `16c` and `16d` in diamond). A position such as (x,x,x) is a line of possible sites; add atoms on such sites to the input structure yourself (as `X` atoms, selected with `-at X` without `-ai`).
+
+The positions are read from `wyckoff.dat` (see [Installation](installation.md#interstitial-sites)): for each space-group setting a header line starting with the space-group number and the setting, then for each Wyckoff position a line `<multiplicity> <letter> <site symmetry>` followed by lines of coordinates in brackets; settings are separated by empty lines:
+
+```text
+225  1 15  1 24   F m -3 m
+8	c	-4 3 m
+(1/4,1/4,1/4) 	(1/4,1/4,3/4)
+4	b	m -3 m
+(1/2,1/2,1/2)
+```
+
+Limitations: the structure must be a conventional cell in the first setting of its space group in the file (e.g. origin choice 1, unique axis b). The interstices are added before `-prim` and `-r` are applied.
 
 ## Output files
 
