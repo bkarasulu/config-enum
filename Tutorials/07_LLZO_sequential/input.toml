@@ -1,0 +1,12 @@
+# Tutorial 7: an ordered model of the garnet Li7La3Zr2O12 (LLZO, Ia-3d) by sequential removal of Li
+[structure]
+inpf = "LLZO.cif"        # 120 Li sites in the cubic cell: 24d (occupancy 0.37) and 96h (0.28)
+ifPrim = true            # primitive cell: 124 atoms, 60 Li sites (12 on 24d, 48 on 96h)
+
+[enumeration]
+aType = ["Li"]           # both Li sites; add wycklist = ["96h"] to take the Li from the 96h sites only
+dType = "Va"
+noDopants = 32           # 60 - 32 = 28 Li: Li7La3Zr2O12 with 4 formula units
+seq = 1                  # one Li removed per step (32 steps)
+seqpick = 2              # the two best configurations of each step are continued
+seqtype = "E"

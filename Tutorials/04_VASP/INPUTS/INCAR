@@ -1,0 +1,13 @@
+SYSTEM = config_enum: Li vacancies in LiCoO2 (example settings; converge them for your system)
+ENCUT  = 520
+EDIFF  = 1E-5
+ISMEAR = 0
+SIGMA  = 0.05
+ISPIN  = 2
+IBRION = 2
+ISIF   = 2
+NSW    = 200
+EDIFFG = -0.03
+LREAL  = Auto
+LWAVE  = .FALSE.
+LCHARG = .FALSE.
