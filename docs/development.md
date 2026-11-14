@@ -13,9 +13,9 @@ mkdocs build --strict
 | File | Covers |
 |---|---|
 | `tests/test_enumeration.py` | Site selection, combinations, symmetry-unique configurations (against the algorithm of the original script in `tests/legacy_reference.py`, and against ASE's structure comparison), doping, `-mod`, structure keys |
-| `tests/test_symmetry.py` | Space groups, equivalent sites and Wyckoff labels, primitive cells, site permutations, interstices and `wyckoff.dat` |
+| `tests/test_symmetry.py` | Space groups, equivalent sites and Wyckoff labels, primitive cells, site permutations, interstices and the Wyckoff table |
 | `tests/test_thermo.py` | Configurational thermodynamics, against a direct sum over all configurations |
-| `tests/test_workflow.py` | The workflow with EMT/LJ: single step, several `-nd`, sequential doping, sorting, output options, CASM, reference structures, dry run, parallel tasks, failed calculations, interstitials |
+| `tests/test_workflow.py` | The workflow with EMT/LJ: single step, several `-nd`, sequential doping, sorting, output options, reference structures, dry run, parallel tasks, failed calculations, interstitials |
 | `tests/test_calculators.py` | Engines, optimiser, ML potentials (custom calculator), VASP inputs (INCAR/KPOINTS/POTCAR with placeholder POTCARs), restart helpers |
 | `tests/test_cli.py` | All original options, engine selection, input files, error messages, the `config_enum.py` script |
 | `tests/test_tutorials.py` | Tutorials 1 and 3; Tutorial 2 with MACE if `CONFIG_ENUM_SLOW_TESTS=1` and `mace-torch` is installed |

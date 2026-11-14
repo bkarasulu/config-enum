@@ -25,7 +25,7 @@ def test_parse_helpers():
 def test_original_options_are_kept():
     """All options of the original script (config_enum-v2.py) are accepted."""
     args = build_parser().parse_args(
-        "-i LLZO.cif -prim -at Li -wl 96h -dt Va -nd 0:2 --casm -sf -ot vasp -o POS -it cif -od OUT -ow -rs -iseed seed -ref ref.cif "
+        "-i LLZO.cif -prim -at Li -wl 96h -dt Va -nd 0:2 -sf -ot vasp -o POS -it cif -od OUT -ow -rs -iseed seed -ref ref.cif "
         "-tol 1e-2 -nosymm -r 2 2 1 -nl 1,2,5:8 -excl 1:4 24 -dexcl -dexcl_type Na -mod x -ai -ase -castep -vasp -vexe vasp_gam "
         "-cexe castep -copy -id INP -mp --potcarxc potpaw_PBE -xc pbesol -hubU Fe d 2.7 -mgm Fe 5.0 -np 16 -nt 2 -nn 1 -mpi -t 500 "
         "-seq 1 -spick 2 -stype S -v -dry -noskip".split())
@@ -35,7 +35,13 @@ def test_original_options_are_kept():
     s = make_settings(args)
     assert s.hubU == {'Fe': {'d': 2.7}} and s.magmoms == ['Fe', '5.0'] and s.idir == 'INP' and s.xc == 'pbesol' and s.mpirun
     cfg = config_from_args(args)
-    assert cfg.noDopants == [0, 1, 2] and cfg.rep == (2, 2, 1) and cfg.temp == 500. and cfg.seqpick == 2 and cfg.casm and cfg.dry
+    assert cfg.noDopants == [0, 1, 2] and cfg.rep == (2, 2, 1) and cfg.temp == 500. and cfg.seqpick == 2 and cfg.sepfol and cfg.dry
+
+
+def test_casm_option_was_removed(capsys):
+    with pytest.raises(SystemExit):
+        build_parser().parse_args("-i a.cif -dt Va -nd 1 -at Li --casm".split())
+    assert "unrecognized arguments: --casm" in capsys.readouterr().err
 
 
 def test_engine_selection():

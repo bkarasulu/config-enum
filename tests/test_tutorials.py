@@ -112,8 +112,7 @@ def test_tutorial_07_llzo(tmp_path):
     assert [len(s["configs"]) for s in steps][0] == 2 and len(steps) == 3
     assert [c["degeneracy"] for c in steps[0]["configs"]] == [12, 48]  # the 24d and 96h sites of the primitive cell
     assert steps[2]["configs"][0]["formula"] == "La12Li57O48Zr8" and len(steps[2]["picked"]) == 2
-    # the example of the original script: CASM files for up to two vacancies on the 96h sites
-    _config_enum(["-i", "LLZO.cif", "-prim", "-at", "Li", "-wl", "96h", "-dt", "Va", "-nd", "0:2", "--casm", "-sf", "-ot", "vasp", "-o", "POS", "-ow"], d)
+    # the example of the original script (without the CASM files): up to two vacancies on the 96h sites
+    _config_enum(["-i", "LLZO.cif", "-prim", "-at", "Li", "-wl", "96h", "-dt", "Va", "-nd", "0:2", "-sf", "-ot", "vasp", "-o", "POSCAR", "-ow"], d)
     assert [sum(1 for c in _configs(d) if c["nD"] == n) for n in (0, 1, 2)] == [1, 1, 33]
-    cl = json.loads((d / "Step1" / "config_list.json").read_text())["supercells"]["SCEL1_1_1_1_0_0_0"]
-    assert len(cl) == 35 and (d / "Step1" / "input_0" / "34" / "POS").exists()
+    assert (d / "Step1" / "input_0" / "34" / "POSCAR").exists()

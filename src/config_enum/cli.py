@@ -60,9 +60,8 @@ def build_parser():
         prog="config_enum",
         description='This script generates the input structures required for a configuration enumeration (including vacancies and dopants) '
                     'for any software supported by ASE, and computes their energies with VASP, CASTEP, machine-learning potentials (MLIPs) or '
-                    'simple classical potentials. \nScript can also create the input files (prim.json and config_list.json) required for CASM '
-                    'for further analysis. \nRequires ASE and SPGlib packages.\n Sample usage: config_enum.py -i LLZO-Ia-3dCollCode261302.cif '
-                    '-prim -at Li -wl 96h  -dt Va -nd 0:2  --casm -sf -ot vasp -o POS')
+                    'simple classical potentials. \nRequires ASE and SPGlib packages.\n Sample usage: config_enum.py -i LLZO-Ia-3dCollCode261302.cif '
+                    '-prim -at Li -wl 96h  -dt Va -nd 0:2  -sf -ot vasp -o POSCAR')
 
     parser.add_argument('-i', '--inpf', type=str, required=True, nargs='*', help='Input file(s), any file type compatible with ASE.')
     parser.add_argument('-o', '--outf', type=str, required=False, help='Output file name. Def: Automatic naming: e.g. %s_ID.' % seed)
@@ -98,7 +97,6 @@ def build_parser():
     parser.add_argument('-vasp', '--vasp', default=False, action='store_true', help='Use VASP to compute configuration energies. Inputs (INCAR, KPOINTS, POTCAR) are read from the input directory (-id)')
     parser.add_argument('-vexe', '--vaspexe', type=str, required=False, default='vasp_std', help='Vasp executable. Def: vasp_std')
     parser.add_argument('-cexe', '--castepexe', type=str, required=False, default='castep.mpi', help='CASTEP executable. Def: castep.mpi')
-    parser.add_argument('-casm', '--casm', default=False, action='store_true', help='to create prim.json and config_list.json files for CASM. Default: False.')
 
     parser.add_argument('-copy', '--copyinp', default=False, action='store_true', help='to copy the files contained in "%s" folder (with -sf). Default: False.' % inpdir)
     parser.add_argument('-id', '--idir', default=inpdir, type=str, required=False, help='Input directory to copy the files from, default: %s' % inpdir)
@@ -126,7 +124,7 @@ def build_parser():
 
     # Options added in the refactored version
     parser.add_argument("-ssym", "--seqsymm", type=str, choices=['current', 'ref'], default='current', help="Symmetry operations used after the first step of a sequential doping: 'current': those of the current (doped) structure; 'ref': those of the Step 1 (reference) structure, as in the original script (fewer configurations, but inequivalent ones can be merged). Def: current")
-    parser.add_argument("--wyckoff_file", type=str, default=None, help="File with the Wyckoff positions of the space groups, used by -ai. Def: $CONFIG_ENUM_WYCKOFF, $HOME/wyckoff.dat if it exists, or the file distributed with the package")
+    parser.add_argument("--wyckoff_file", type=str, default=None, help="File with Wyckoff positions (in the format of the wyckoff.dat of the original script) to use for -ai instead of the table of the package. Def: $CONFIG_ENUM_WYCKOFF, or the table of the package")
     parser.add_argument('-q', '--quiet', default=False, action='store_true', help='Only show warnings and errors. Default: False.')
     parser.add_argument("--version", action="version", version="config_enum %s" % __version__)
 
@@ -314,7 +312,7 @@ def config_from_args(args, base_dir='.', command=''):
         overwrite=args.overwrite, restart=args.restart, sepfol=args.sepfol, ifPrim=args.ifPrim, initCrysFile=args.initCrysFile, tol=args.tol,
         nosymm=args.nosymm, rep=tuple(args.rep) if args.rep else None, list=args.list, aType=args.aType, wycklist=args.wycklist,
         excludelist=args.excludelist, dopeexcluded=args.dopeexcluded, dexcl_type=args.dexcl_type, modify=args.modify, addint=args.addint,
-        wyckoff_file=args.wyckoff_file, ASE_symm=args.ASE_symm, casm=args.casm, copyinp=args.copyinp, idir=args.idir,
+        wyckoff_file=args.wyckoff_file, ASE_symm=args.ASE_symm, copyinp=args.copyinp, idir=args.idir,
         makepotcar=args.makepotcar, potcarxc=args.potcarxc, ntasks=args.ntasks, temp=args.temp, seq=args.seq, seqpick=args.seqpick,
         seqtype=args.seqtype, seqsymm=args.seqsymm, verb=args.verb, dry=args.dry, noskip=args.noskip, base_dir=os.path.abspath(base_dir),
         command=command)

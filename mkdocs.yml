@@ -56,7 +56,6 @@ nav:
       - config_enum.symmetry: api/symmetry.md
       - config_enum.thermo: api/thermo.md
       - config_enum.calculators: api/calculators.md
-      - config_enum.casm: api/casm.md
       - config_enum.io: api/io.md
       - config_enum.utils: api/utils.md
       - config_enum.geometry: api/geometry.md

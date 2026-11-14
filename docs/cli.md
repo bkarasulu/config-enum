@@ -51,7 +51,7 @@ Every option except `--input`, `--save_input`, `--help` and `--version` can also
 | `-ai`, `--addint` |  | To add the interstices as X atoms (select them with -at X) based on the Wyckoff positions data for the reference symmetry group. Default: False. |
 | `-ase`, `--ASE_symm` |  | Do a final check of the symmetrically-unique configurations by comparing the whole structures with ASE (SymmetryEquivalenceCheck). Default: False. |
 
-## Energies: VASP, CASTEP and CASM files
+## Energies: VASP and CASTEP
 
 | Option | Default | Description |
 |---|---|---|
@@ -59,7 +59,6 @@ Every option except `--input`, `--save_input`, `--help` and `--version` can also
 | `-vasp`, `--vasp` |  | Use VASP to compute configuration energies. Inputs (INCAR, KPOINTS, POTCAR) are read from the input directory (-id) |
 | `-vexe`, `--vaspexe` | `vasp_std` | Vasp executable. Def: vasp_std |
 | `-cexe`, `--castepexe` | `castep.mpi` | CASTEP executable. Def: castep.mpi |
-| `-casm`, `--casm` |  | to create prim.json and config_list.json files for CASM. Default: False. |
 | `-copy`, `--copyinp` |  | to copy the files contained in "INPUTS" folder (with -sf). Default: False. |
 | `-id`, `--idir` | `INPUTS` | Input directory to copy the files from, default: INPUTS |
 | `-mp`, `-makepotcar`, `--makepotcar` |  | to compile POTCAR (for VASP) using actual atomic content. The environment variable ($VASP_PP_PATH) should be defined beforehand. Default: False. |
@@ -94,7 +93,7 @@ Every option except `--input`, `--save_input`, `--help` and `--version` can also
 | `-dry`, `--dry` |  | Dry run to get the equivalent (Wyckoff) positions. Default: False. |
 | `-noskip`, `--noskip` |  | Do not skip problematic configs (and assigning them with 0 energy and P1 symmetry). Default: Bad configs are skipped. |
 | `-ssym`, `--seqsymm` {current,ref} | `current` | Symmetry operations used after the first step of a sequential doping: 'current': those of the current (doped) structure; 'ref': those of the Step 1 (reference) structure, as in the original script (fewer configurations, but inequivalent ones can be merged). Def: current |
-| `--wyckoff_file` |  | File with the Wyckoff positions of the space groups, used by -ai. Def: $CONFIG_ENUM_WYCKOFF, $HOME/wyckoff.dat if it exists, or the file distributed with the package |
+| `--wyckoff_file` |  | File with Wyckoff positions (in the format of the wyckoff.dat of the original script) to use for -ai instead of the table of the package. Def: $CONFIG_ENUM_WYCKOFF, or the table of the package |
 | `-q`, `--quiet` |  | Only show warnings and errors. Default: False. |
 | `--version` | `==SUPPRESS==` | show program's version number and exit |
 

@@ -95,18 +95,39 @@ def test_read_wyckoff_data(tmp_path):
     assert read_wyckoff_data(str(f), 1) == {}
 
 
-def test_bundled_wyckoff_data():
-    """The wyckoff.dat distributed with the package has all 230 space groups."""
-    from config_enum.symmetry import BUNDLED_WYCKOFF, wyckoff_file_path
-    assert wyckoff_file_path("my.dat") == "my.dat"
+def test_wyckoff_table():
+    """The hard-coded table has all 230 space groups, and gives the same as reading a file."""
+    from config_enum.symmetry import wyckoff_positions
+    from config_enum.wyckoff_positions import WYCKOFF_POSITIONS
+    assert len(WYCKOFF_POSITIONS) == 685 and {no for no, _ in WYCKOFF_POSITIONS} == set(range(1, 231))
     for no in range(1, 231):
-        data = read_wyckoff_data(BUNDLED_WYCKOFF, no)
+        data = wyckoff_positions(no)
         assert data and all(len(v) > 0 for d in data.values() for v in d.values()), no
-    d = read_wyckoff_data(BUNDLED_WYCKOFF, 225)['225-1']
+    assert WYCKOFF_POSITIONS[(225, 1)][0] == 'F m -3 m' and WYCKOFF_POSITIONS[(225, 1)][1][-1] == ('4a', 'm-3m', '(0,0,0)')
+    d = wyckoff_positions(225)['225-1']
     assert sorted(d) == ['192l', '24d', '24e', '32f', '48g', '48h', '48i', '4a', '4b', '8c', '96j', '96k']
-    assert d['48i'][0] == [0.5, 0., 0.] and d['24d'][0] == [0., 0.25, 0.25]  # site symmetries with a space ('m.m 2')
-    assert sorted(read_wyckoff_data(BUNDLED_WYCKOFF, 225, fixed_only=True)['225-1']) == ['24d', '4a', '4b', '8c']
-    assert len(read_wyckoff_data(BUNDLED_WYCKOFF, 227)) == 2  # two origin choices
+    assert d['48i'][0] == [0.5, 0., 0.] and d['24d'][0] == [0., 0.25, 0.25] and d['8c'] == [[0.25, 0.25, 0.25], [0.25, 0.25, 0.75]]
+    assert sorted(wyckoff_positions(225, fixed_only=True)['225-1']) == ['24d', '4a', '4b', '8c']
+    assert len(wyckoff_positions(227)) == 2  # two origin choices
+    assert wyckoff_positions(231) == {}
+
+
+def test_wyckoff_table_and_file_agree(tmp_path):
+    """A file written from the table is read back to the same data (a site symmetry can contain spaces)."""
+    from config_enum.symmetry import wyckoff_positions
+    from config_enum.wyckoff_positions import WYCKOFF_POSITIONS
+    lines = []
+    for (no, st), (symbol, sites) in WYCKOFF_POSITIONS.items():
+        if no in (62, 166, 225, 230):
+            lines.append("%3d %2d  0  0  0   %s" % (no, st, symbol))
+            for label, ss, crds in sites:
+                lines += ["%s\t%s\t%s" % (label[:-1], label[-1], ss), crds]
+            lines.append("")
+    f = tmp_path / "w.dat"
+    f.write_text("# test\n" + "\n".join(lines))
+    for no in (62, 166, 225, 230):
+        for fixed in (False, True):
+            assert read_wyckoff_data(str(f), no, fixed_only=fixed) == {k: v for k, v in wyckoff_positions(no, fixed_only=fixed).items() if v}
 
 
 def _sites(atoms):
@@ -116,8 +137,7 @@ def _sites(atoms):
 
 def test_find_interstices(tmp_path, cu_bulk, nacl, tio2, monkeypatch):
     from ase.build import bulk
-    monkeypatch.delenv("CONFIG_ENUM_WYCKOFF", raising=False)
-    monkeypatch.setenv("HOME", str(tmp_path))  # no wyckoff.dat there: the file of the package is used
+    monkeypatch.delenv("CONFIG_ENUM_WYCKOFF", raising=False)  # the table of the package is used
     cu = find_interstices(cu_bulk.copy(), tol=1e-3)
     assert spacegroup_string(cu) == 'Fm-3m (225)'
     assert _sites(cu) == {'4b': 4, '8c': 8, '24d': 24}  # octahedral, tetrahedral and (0,1/4,1/4) sites

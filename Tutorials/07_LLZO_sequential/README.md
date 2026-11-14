@@ -41,10 +41,10 @@ The run makes about 2500 configurations in total (2, 62, 114, 113, ... per step 
 - **`-stype S`** picks the most symmetric configurations instead of the lowest in energy.
 - **Final check with DFT**: run VASP on the structures in `Step32/Picked/`, or repeat the last steps with `-vasp`.
 
-The original example of the script, which writes the input files for CASM for up to two vacancies on the `96h` sites, still works:
+The example of the original script, up to two vacancies on the `96h` sites with one folder per configuration, still works (without the CASM files, which are no longer written):
 
 ```bash
-config_enum -i LLZO.cif -prim -at Li -wl 96h -dt Va -nd 0:2 --casm -sf -ot vasp -o POS
+config_enum -i LLZO.cif -prim -at Li -wl 96h -dt Va -nd 0:2 -sf -ot vasp -o POSCAR
 ```
 
 It gives 1 + 1 + 33 configurations.

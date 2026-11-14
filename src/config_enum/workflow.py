@@ -3,7 +3,7 @@
 For every step (one step unless sequential doping, -seq, is used) and every input structure:
     1. prepare the structure (interstices, primitive cell, supercell) and its symmetry operations,
     2. select the atoms/crystal sites and enumerate the symmetrically-unique configurations,
-    3. write the structures (and optionally the CASM files),
+    3. write the structures,
     4. compute the energies (VASP, CASTEP, a machine-learning potential or a classical potential),
     5. configurational thermodynamics (degeneracies, reduced energies and probabilities),
 and finally the configurations are sorted and picked for the next step.
@@ -20,7 +20,6 @@ from dataclasses import dataclass, field
 import numpy as np
 from ase.build import sort
 
-from . import casm
 from .calculators.vasp import make_potcar
 from .enumeration import (PARENT_ARRAY, apply_dopants, canonical_keys, changed_sites, enumerate_configs, parse_exclude_list,
                           parse_modify, select_atoms, set_parent_sites)
@@ -60,7 +59,6 @@ class WorkflowConfig:
     addint: bool = False           # -ai
     wyckoff_file: str = None       # --wyckoff_file
     ASE_symm: bool = False         # -ase
-    casm: bool = False             # -casm
     copyinp: bool = False          # -copy
     idir: str = 'INPUTS'           # -id
     makepotcar: bool = False       # -mp
@@ -413,39 +411,25 @@ class EnumWorkflow:
         if copyinp and (not os.path.exists(idir) or len(os.listdir(idir)) == 0):
             say("Copying input files is requested, but the %s directory is empty. Switching off -copy." % cfg.idir)
             copyinp = False
-        sepfol = cfg.sepfol or cfg.casm  # CASM needs separate folder for each config.
         for cnt, conf in enumerate(configs):
             conf.name = '%s_%d' % (seed, cnt)
-            if sepfol:
+            if cfg.sepfol:
                 d = os.path.join(outdir, str(cnt))
                 os.makedirs(d, exist_ok=True)
-                if cfg.casm:
-                    fname = os.path.join(d, "POS")
-                    write_struct(fname, conf.atoms, "vasp")
-                    # Change the first line reporting atomic types with the config ID.
-                    with open(fname) as f:
-                        lines = f.readlines()
-                    with open(fname, 'w') as f:
-                        f.writelines([" config_%d \n" % cnt] + lines[1:])
-                elif cfg.outf:
+                if cfg.outf:
                     fname = os.path.join(d, cfg.outf)
-                    write_struct(fname, conf.atoms, cfg.otype)
                 else:
                     fname = os.path.join(d, "%s_%d.%s" % (seed, cnt, ext))
-                    write_struct(fname, conf.atoms, cfg.otype)
+                write_struct(fname, conf.atoms, cfg.otype)
 
                 if copyinp:  # Copy input files from INPUTS dir.
-                    outn = os.path.join(d, 'calctype.default') if cfg.casm else d
-                    os.makedirs(outn, exist_ok=True)
                     for fn in os.listdir(idir):
                         if os.path.isfile(os.path.join(idir, fn)):
-                            shutil.copy(os.path.join(idir, fn), outn)
-                    if cfg.casm:
-                        shutil.copy(fname, os.path.join(outn, 'POSCAR'))
-                    if cfg.makepotcar and (cfg.casm or cfg.otype == "vasp"):
-                        if not cfg.casm and not os.path.exists(os.path.join(outn, 'POSCAR')):
-                            write_struct(os.path.join(outn, 'POSCAR'), conf.atoms, "vasp")
-                        make_potcar(xc=cfg.potcarxc, wDir=outn)
+                            shutil.copy(os.path.join(idir, fn), d)
+                    if cfg.makepotcar and cfg.otype == "vasp":
+                        if not os.path.exists(os.path.join(d, 'POSCAR')):
+                            write_struct(os.path.join(d, 'POSCAR'), conf.atoms, "vasp")
+                        make_potcar(xc=cfg.potcarxc, wDir=d)
             else:  # if all out files in the same folder.
                 name = cfg.outf.split('_')[0] if cfg.outf else seed
                 fname = os.path.join(outdir, "%s_%d.%s" % (name, cnt, ext))
@@ -604,12 +588,6 @@ class EnumWorkflow:
         say("\nTotal of %d symmetrically-unique configurations were generated." % len(configs))
 
         self.write_configs(configs, outdir)
-        if cfg.casm:
-            suffix = '' if find == 0 else '_%d' % find
-            casm.write_casm(atoms, atoms_list, cfg.dType, [c.sites for c in configs],
-                            prim_file=os.path.join(stepdir, 'prim%s.json' % suffix),
-                            config_file=os.path.join(stepdir, 'config_list%s.json' % suffix))
-
         # Now do the actual calculation (SP or geom opt).
         say("Energies with: %s" % self.engine.describe())
         self.compute(configs, outdir, stepdir)

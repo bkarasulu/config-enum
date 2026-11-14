@@ -54,4 +54,4 @@ See [DFT codes](dft_codes.md) for details.
 
 ## Interstitial sites
 
-The `-ai` option uses a data file with the Wyckoff positions of all space groups (`wyckoff.dat`, taken from VESTA). It is distributed with the package (`src/config_enum/data/wyckoff.dat`). Another file can be given with `--wyckoff_file` or the `CONFIG_ENUM_WYCKOFF` environment variable; a `wyckoff.dat` in your home directory, where the original script looked for it, is used if it exists. The format is described in [Workflow](workflow.md#interstitial-sites).
+The `-ai` option needs the Wyckoff positions of the space groups. They are part of the code (`config_enum/wyckoff_positions.py`); the `wyckoff.dat` file that the original script read from the home directory is no longer needed. See [Workflow](workflow.md#interstitial-sites).

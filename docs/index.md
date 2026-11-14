@@ -33,4 +33,4 @@ input structure(s) ──► [interstices -ai] ──► [primitive cell -prim] 
 - [Workflow and output files](workflow.md) and [Theory and definitions](theory.md): what is computed, and how.
 - [Command-line reference](cli.md) and [Input files](input_files.md).
 
-config_enum was originally written as a single script (`config_enum-v2.py`, kept in `legacy/`). All of its options still work; see [Package layout and migration](package_layout.md) and [Fixed bugs and known issues](known_issues.md) for what changed.
+config_enum was originally written as a single script (`config_enum-v2.py`, kept in `legacy/`). Its options still work (except `-casm`, which was removed); see [Package layout and migration](package_layout.md) and [Fixed bugs and known issues](known_issues.md) for what changed.

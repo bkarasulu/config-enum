@@ -39,4 +39,4 @@ To prepare input folders without running anything, use the default (LJ) energies
 config_enum -i LiCoO2.cif -at Li -dt Va -nd 2 -sf -ot vasp -o POSCAR -copy -id INPUTS -mp
 ```
 
-This gives `Step1/input_0/<K>/POSCAR` with the files of `INPUTS/` (and a POTCAR with `-mp`) for each configuration. `-casm` writes `POS` files and the `prim.json` and `config_list.json` files of CASM instead.
+This gives `Step1/input_0/<K>/POSCAR` with the files of `INPUTS/` (and a POTCAR with `-mp`) for each configuration.

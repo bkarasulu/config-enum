@@ -128,18 +128,17 @@ def test_output_options(tmp_path, cu_file):
     assert res.configs[0].file == os.path.join('Step1', 'input_0', 'struct_0.xyz')
 
 
-def test_copy_inputs_and_casm(tmp_path, cu_file):
+def test_copy_inputs(tmp_path, cu_file, fake_potcars):
     (tmp_path / 'INPUTS').mkdir()
     (tmp_path / 'INPUTS' / 'INCAR').write_text('ENCUT = 400\n')
-    res = run(tmp_path, cu_file, rep=(2, 2, 1), aType=['Cu'], dType='Va', noDopants=[2], casm=True, copyinp=True)
+    res = run(tmp_path, cu_file, rep=(2, 2, 1), aType=['Cu'], dType='Au', noDopants=[2], sepfol=True, otype='vasp', outf='POSCAR',
+              copyinp=True, makepotcar=True)
+    assert len(res.configs) == 5
     d = tmp_path / 'Step1' / 'input_0' / '1'
-    assert (d / 'POS').read_text().splitlines()[0].strip() == 'config_1'
-    assert (d / 'calctype.default' / 'INCAR').exists() and (d / 'calctype.default' / 'POSCAR').exists()
-    prim = json.loads((tmp_path / 'Step1' / 'prim.json').read_text())
-    assert len(prim['basis']) == 16 and prim['basis'][0]['occupant_dof'] == ['Cu', 'Va'] and prim['coordinate_mode'] == 'Fractional'
-    cl = json.loads((tmp_path / 'Step1' / 'config_list.json').read_text())['supercells']['SCEL1_1_1_1_0_0_0']
-    assert len(cl) == len(res.configs) == 5
-    assert all(sum(c['dof']['occupation']) == 2 for c in cl.values())
+    assert sorted(os.listdir(d)) == ['INCAR', 'POSCAR', 'POTCAR']
+    assert (d / 'POTCAR').read_text().count('TITEL') == 2  # one block per atom type in the POSCAR
+    assert (d / 'POSCAR').read_text().splitlines()[5].split() == ['Au', 'Cu']
+    assert not (tmp_path / 'Step1' / 'prim.json').exists()
 
 
 def test_selection_options(tmp_path, nacl):

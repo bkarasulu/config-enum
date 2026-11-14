@@ -12,7 +12,7 @@ For every input structure of a step (the files of `-i` in Step 1, the picked con
 4. **Enumeration**: all combinations of the dopants on the selected sites; one configuration of each set of equivalent ones is kept, with its degeneracy. If several atom types are selected (`-at Li Nb`), only configurations in which all of them are doped are kept.
 5. **Doping**: the selected atoms are replaced by `-dt`, or deleted for `Va`. With `-dexcl`, the atoms of `-excl` are doped too, in every configuration, with `-dexcl_type` (default: `-dt`). Then the modifications (`-mod`) are applied and the unused interstices are removed.
 6. **Final check** (`-ase`): the whole structures are compared with ASE's `SymmetryEquivalenceCheck`, and equivalent ones are merged.
-7. **Output** of the structures (`-ot`, `-o`, `-sf`, `-copy`, `-casm`).
+7. **Output** of the structures (`-ot`, `-o`, `-sf`, `-copy`).
 8. **Energies** with the chosen engine, `-nt` configurations at a time.
 9. **Thermodynamics**: reduced energies and probabilities at `-t` ([Theory](theory.md#configurational-thermodynamics)).
 
@@ -47,17 +47,19 @@ config_enum -i Cu.cif -ai -at X -wl 4b -dt H -nd 2 -seq 1   # octahedral sites o
 
 Only the positions without free parameters are added (e.g. `4b`, `8c` and `24d` in Fm-3m, `8b`, `16c` and `16d` in diamond). A position such as (x,x,x) is a line of possible sites; add atoms on such sites to the input structure yourself (as `X` atoms, selected with `-at X` without `-ai`).
 
-The positions are read from `wyckoff.dat` (see [Installation](installation.md#interstitial-sites)): for each space-group setting a header line starting with the space-group number and the setting, then for each Wyckoff position a line `<multiplicity> <letter> <site symmetry>` followed by lines of coordinates in brackets; settings are separated by empty lines:
+The positions of all space groups and settings are part of the code (`config_enum/wyckoff_positions.py`, the content of the `wyckoff.dat` file of the original script):
 
-```text
-225  1 15  1 24   F m -3 m
-8	c	-4 3 m
-(1/4,1/4,1/4) 	(1/4,1/4,3/4)
-4	b	m -3 m
-(1/2,1/2,1/2)
+```python
+from config_enum.symmetry import wyckoff_positions
+from config_enum.wyckoff_positions import WYCKOFF_POSITIONS
+
+WYCKOFF_POSITIONS[(225, 1)]             # ('F m -3 m', (('192l', '1', '(x,y,z) ...'), ..., ('8c', '-43m', '(1/4,1/4,1/4) (1/4,1/4,3/4)'), ...))
+wyckoff_positions(225, fixed_only=True) # {'225-1': {'24d': [[0.0, 0.25, 0.25], ...], '8c': [...], '4b': [...], '4a': [...]}}
 ```
 
-Limitations: the structure must be a conventional cell in the first setting of its space group in the file (e.g. origin choice 1, unique axis b). The interstices are added before `-prim` and `-r` are applied.
+Other data can be used with `--wyckoff_file FILE` (or `$CONFIG_ENUM_WYCKOFF`), in the format of the original file: for each space-group setting a header line starting with the space-group number and the setting, then for each Wyckoff position a line `<multiplicity> <letter> <site symmetry>` followed by lines of coordinates in brackets; settings are separated by empty lines.
+
+Limitations: the structure must be a conventional cell in the first setting of its space group in the table (e.g. origin choice 1, unique axis b). The interstices are added before `-prim` and `-r` are applied.
 
 ## Output files
 
@@ -70,7 +72,6 @@ Step1/
   <formula>-config_enum-<id>.res    structures after the calculation; energy, pressure and space group in the title line
   Picked/input_0-config_3.res       copies of the picked configurations
   Structures-are-optimised          marker: the <formula>-...res files are relaxed (VASP, or -opt)
-  prim.json, config_list.json       with -casm
 Step2/ ...
 results.json
 ```

@@ -2,6 +2,7 @@
 
 Main modules:
     config_enum.symmetry     symmetry operations, equivalent (Wyckoff) sites, interstices
+    config_enum.wyckoff_positions  the Wyckoff positions of all space groups
     config_enum.enumeration  atom selection, symmetry-unique configurations, doping and final modifications
     config_enum.thermo       configurational thermodynamics (Boltzmann statistics with degeneracies)
     config_enum.calculators  engines for VASP, CASTEP and ASE calculators (classical and machine-learning potentials)

@@ -12,8 +12,6 @@ It runs the following workflow:
 6. Compute the energies (`-vasp`, `-castep`, `--mlip`, or a simple ASE potential) and the configurational thermodynamics (reduced energies and probabilities at temperature `-t`).
 7. With sequential doping (`-seq`), pick the best configurations (`-spick`, `-stype`) and repeat from step 2 with them until the target number of dopants is reached.
 
-It can also write the input files of CASM (`-casm`).
-
 ## Installation
 
 ```bash
@@ -50,7 +48,7 @@ config_enum -i LiCoO2.cif -r 2 2 1 -at Li -dt Va -nd 1:3 --mlip mace --mlip_mode
 config_enum -i LiCoO2.cif -r 2 2 1 -at Li -dt Va -nd 4 -seq 1 -spick 2 -vasp -id INPUTS -np 64 -nt 2 -mpi
 ```
 
-`python config_enum.py ...` accepts the same options as `config_enum`. Run `config_enum -h` for all options. All options of the original script (`config_enum-v2.py`, kept in `legacy/`) are unchanged.
+`python config_enum.py ...` accepts the same options as `config_enum`. Run `config_enum -h` for all options. The options of the original script (`config_enum-v2.py`, kept in `legacy/`) are unchanged, except `-casm`, which was removed.
 
 Options can also go in an input file: `config_enum --input run.toml` (TOML, YAML or JSON). Command-line options override the file, and `--save_input` writes the options of a run to a file.
 

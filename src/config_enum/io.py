@@ -18,7 +18,7 @@ def read_struct(inpf, itype=None):
 
 
 def write_struct(fname, atoms, otype="res"):
-    """Write a structure in any format of ASE (VASP files in direct coordinates, VASP5 format)."""
+    """Write a structure in any format of ASE (VASP files in direct coordinates, VASP5 format, sorted by atom type)."""
     d = os.path.dirname(fname)
     if d:
         os.makedirs(d, exist_ok=True)
@@ -27,7 +27,7 @@ def write_struct(fname, atoms, otype="res"):
         for k in [k for k in atoms.arrays if k.startswith('config_enum')]:
             del atoms.arrays[k]
     if otype == "vasp":
-        ase.io.write(fname, atoms, format=otype, direct=True, vasp5=True)
+        ase.io.write(fname, atoms, format=otype, direct=True, vasp5=True, sort=True)  # one block per atom type
     else:
         ase.io.write(fname, atoms, format=otype)
 

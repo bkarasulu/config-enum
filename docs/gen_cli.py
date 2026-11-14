@@ -11,7 +11,7 @@ from config_enum.cli import build_parser  # noqa: E402
 
 # first option (dest) of each section, in the order of the parser
 SECTIONS = {"inpf": "Input and output", "ifPrim": "Structure and symmetry", "list": "Sites and dopants",
-            "modify": "Modifications, interstices and final checks", "castep": "Energies: VASP, CASTEP and CASM files",
+            "modify": "Modifications, interstices and final checks", "castep": "Energies: VASP and CASTEP",
             "nprocs": "Parallelisation", "temp": "Thermodynamics and sequential doping", "verb": "General",
             "ase_pot": "ASE calculators (simple and machine-learning potentials)", "mlip": "Machine-learning potentials",
             "input": "Input files"}

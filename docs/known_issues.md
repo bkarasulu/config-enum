@@ -24,32 +24,33 @@ This page lists the bugs of the original script (`legacy/config_enum-v2.py`) tha
 
 ### Crashes
 
-- `-casm`: `outff.writelines(sbtr11)` (typo) stopped the run after the enumeration. The files are now written with the `json` module.
 - `get_potcar` used a variable (`vasppp`) that only existed if `VASP_PP_PATH` was set when the script started.
 - `find_interstices` (`-ai`): the space-group argument was overwritten while reading `wyckoff.dat`, so the option stopped at the first empty line of the file; the last block of the file was skipped; Wyckoff positions whose site symmetry is written with a space (e.g. `48 i m.m 2`) were not recognised, and their coordinates were added to the previous position.
 - `-ai` with `-seq`: all unused interstices were removed after the first step, so there were no sites left for the next one.
 - `-mgm`: the magnetic moments were passed to ASE as strings.
 - `-hubU` with current ASE: logical INCAR tags were given as `".True."` and `1`; recent ASE needs Python booleans.
 - Current ASE and spglib: `atoms.set_calculator`, `ase.spacegroup.get_spacegroup`, `ase.io.castep.read_cell` and dictionary access to the spglib dataset are deprecated or removed.
-- `-nd N` with fewer than N selected sites, a missing `wyckoff.dat` and unreadable input files give a message instead of a traceback.
+- `-nd N` with fewer than N selected sites and unreadable input files give a message instead of a traceback.
 
 ## Deliberate changes
 
+- **CASM support was removed** (`-casm`, `prim.json`, `config_list.json`, `POS` files). In the original script the option stopped with an error after the enumeration (`outff.writelines(sbtr11)`).
+- **VASP structure files** (`-ot vasp`) are written with the atoms sorted by type, so that the POSCAR has one block per element (and `-mp` one POTCAR entry per element).
 - **Dependencies:** `p_tqdm` and `tqdm` are no longer needed; `-nt` uses Python's `multiprocessing`.
 - **`-ref POSCAR`:** the original script set the symmetry tolerance to 1.0 when the reference file was called `POSCAR`, which makes all configurations equivalent. The tolerance is now always `-tol`.
 - **`-castep` no longer forces `-stype E`.**
 - **Failed calculations** are skipped (energy 0, P1) for all engines, not only VASP, and are not picked while other configurations are available.
 - **Step folders:** as before, the output is always in `Step1/` (and further steps), also without `-seq`.
 - **`.res` result files** now contain the energy in the title line (it was `None`).
-- **Interstices (`-ai`):** only Wyckoff positions without free parameters are added. The original set the free parameters to 0, which gives arbitrary points (e.g. 96 extra sites in diamond Si from (1/8,y,-y+1/4) with y = 0). `wyckoff.dat` is now distributed with the package.
+- **Interstices (`-ai`):** only Wyckoff positions without free parameters are added. The original set the free parameters to 0, which gives arbitrary points (e.g. 96 extra sites in diamond Si from (1/8,y,-y+1/4) with y = 0). The Wyckoff positions are now part of the code (`config_enum/wyckoff_positions.py`); no data file is needed.
 - **Too many combinations:** the message for more than 2×10⁴ combinations is kept as information; nothing is skipped (as before). The symmetry reduction is about three orders of magnitude faster than the original, so larger problems are feasible; all combinations are still generated in memory.
 
 ## Open issues
 
 - **VASP and CASTEP were not run** in the environment where the refactor was done: the VASP input preparation is tested (INCAR, KPOINTS, POTCAR, magnetic moments, Hubbard U), the run and restart logic is ported from the original and untested; the CASTEP engine is ported and untested. Please test with a small system first.
 - **ML potentials:** only the `custom:` route was run; see [Machine-learning potentials](mlip.md).
-- **`-ai`** needs a conventional cell in the first setting of the space group in `wyckoff.dat` (origin choice 1 where there are two); structures given in another setting get interstices at the wrong places. Check the result with `-dry`-like runs on a small cell (`-pot LJ`) before production runs.
-- **`wyckoff.dat`** is taken from VESTA (see the first line of the file); check that its licence allows the redistribution before making the repository or a release public.
+- **`-ai`** needs a conventional cell in the first setting of the space group in the table (origin choice 1 where there are two); structures given in another setting get interstices at the wrong places. Check the result with `-dry`-like runs on a small cell (`-pot LJ`) before production runs.
+- **Wyckoff table:** the data in `config_enum/wyckoff_positions.py` are those of the `wyckoff.dat` of the original script, which was taken from VESTA; check that this is acceptable before making the repository or a release public.
 - **`-ref`** must have the same cell and atom order as the structure to be doped; a warning is printed if the cells differ. With a reference of higher symmetry than the structure, configurations are merged according to the reference (by design).
 - **Sequential doping after relaxation:** the next step starts from the unrelaxed picked structures. Starting from relaxed structures would need a mapping of the relaxed atoms back to the lattice sites.
 - **Multiple dopant types** in one run are not supported (to-do item of the original). They can be done one after the other with `-dexcl`/`-dexcl_type`, or by running config_enum on the picked structures.

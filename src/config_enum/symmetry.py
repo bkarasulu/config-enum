@@ -1,7 +1,6 @@
 """Symmetry operations, equivalent (Wyckoff) sites, primitive cells and interstices (spglib and ASE)."""
 import os
 import warnings
-from copy import deepcopy
 from fractions import Fraction
 
 import numpy as np
@@ -200,23 +199,48 @@ def find_equisites(atoms, all_W, all_w, tol=1e-6):
     return [int(x) for x in equiSites]
 
 
-BUNDLED_WYCKOFF = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'wyckoff.dat')
+def _parse_coordinate(crd):
+    """'(1/2,y,-y+1/4)' -> [0.5, 0., 0.25]: the free parameters (x, y, z) are set to 0."""
+    crd = crd.strip('(').strip(')')
+    for v in ('-x', '-y', '-z', '+x', '+y', '+z', 'x', 'y', 'z'):
+        crd = crd.replace(v, '')
+    return [float(Fraction(a)) if a != '' else 0. for a in crd.split(',')]
 
 
-def wyckoff_file_path(wyckoff_file=None):
-    """Location of wyckoff.dat: the argument, $CONFIG_ENUM_WYCKOFF, $HOME/wyckoff.dat (as in the original script) if it
-    exists, or the file distributed with the package."""
-    home = os.path.join(os.path.expanduser('~'), 'wyckoff.dat')
-    return wyckoff_file or os.environ.get('CONFIG_ENUM_WYCKOFF') or (home if os.path.exists(home) else BUNDLED_WYCKOFF)
+def _has_free_parameter(crd):
+    return any(v in crd for v in 'xyz')
+
+
+def wyckoff_positions(sgno, fixed_only=False):
+    """The Wyckoff positions of space group `sgno` from the table in config_enum.wyckoff_positions.
+
+    The free parameters (x, y, z) are set to 0; with fixed_only, the positions with free parameters are left out.
+
+    Returns {'<number>-<setting>': {'4a': [[0., 0., 0.], ...], ...}} for all settings of the space group.
+    """
+    from .wyckoff_positions import WYCKOFF_POSITIONS
+    data = {}
+    for (no, setting), (_symbol, sites) in WYCKOFF_POSITIONS.items():
+        if no != sgno:
+            continue
+        tmp = {}
+        for label, _site_symmetry, coordinates in sites:
+            crds = coordinates.split()
+            if fixed_only and any(_has_free_parameter(c) for c in crds):
+                continue
+            tmp[label] = [_parse_coordinate(c) for c in crds]
+        data['%s-%s' % (no, setting)] = tmp
+    return data
 
 
 def read_wyckoff_data(fname, sgno, fixed_only=False):
-    """Read the Wyckoff positions of space group `sgno` from wyckoff.dat.
+    """Read the Wyckoff positions of space group `sgno` from a file in the format of the wyckoff.dat of the original
+    script (only needed to use other data than the table of the package, see wyckoff_positions).
 
-    Format (as in the file taken from VESTA): a header line per space-group setting ('<number> <setting> ... <symbol>'),
-    then for each Wyckoff position a line '<multiplicity> <letter> <site symmetry>' followed by lines of coordinates
-    '(x,y,z) (-x,-y,z) ...'; the settings are separated by empty lines. The free parameters (x, y, z) are set to 0;
-    with fixed_only, the positions with free parameters are left out.
+    Format: a header line per space-group setting ('<number> <setting> ... <symbol>'), then for each Wyckoff position a
+    line '<multiplicity> <letter> <site symmetry>' followed by lines of coordinates '(x,y,z) (-x,-y,z) ...'; the
+    settings are separated by empty lines. The free parameters (x, y, z) are set to 0; with fixed_only, the positions
+    with free parameters are left out.
 
     Returns {'<number>-<setting>': {'4a': [[0., 0., 0.], ...], ...}}
     """
@@ -245,20 +269,16 @@ def read_wyckoff_data(fname, sgno, fixed_only=False):
             elif ln[0] != '(' and len(x) > 5:
                 label = '%s-%s' % (x[0], x[1])
             elif ln[0] == '(':
-                for crd in x:  # TODO: Double check if the x,y,z and addition/substraction of fractions are handled correctly.
-                    crd_bkp = deepcopy(crd)
-                    if fixed_only and any(v in crd for v in 'xyz'):
+                for crd in x:
+                    if fixed_only and _has_free_parameter(crd):
                         tmp.pop(wyck, None)
                         continue
                     if wyck not in tmp:
                         continue
-                    crd = crd.strip('(').strip(')')
-                    for v in ('-x', '-y', '-z', '+x', '+y', '+z', 'x', 'y', 'z'):
-                        crd = crd.replace(v, '')
                     try:
-                        tmp[wyck].append([float(Fraction(a)) if a != '' else 0. for a in crd.split(',')])
-                    except (ValueError, ZeroDivisionError, KeyError):
-                        warn('Error! :  ', label, wyck, crd_bkp, crd)
+                        tmp[wyck].append(_parse_coordinate(crd))
+                    except (ValueError, ZeroDivisionError):
+                        warn('Error! :  ', label, wyck, crd)
     store()
     return data
 
@@ -275,7 +295,8 @@ def find_interstices(atoms, tol=1e-6, sg=None, verb=None, wyckoff_file=None):
     Args:
         atoms: structure (modified in place and returned).
         sg (int): space-group number (determined from the structure if not given).
-        wyckoff_file: the wyckoff.dat file with the Wyckoff positions (see wyckoff_file_path).
+        wyckoff_file: a file with the Wyckoff positions, to use instead of the table of the package (see
+            read_wyckoff_data); also $CONFIG_ENUM_WYCKOFF.
     """
     from ase.spacegroup import Spacegroup
 
@@ -289,14 +310,16 @@ def find_interstices(atoms, tol=1e-6, sg=None, verb=None, wyckoff_file=None):
     scpos = atoms.get_scaled_positions()
     out('Original scaled/fractional positions: \n', scpos)
 
-    fname = wyckoff_file_path(wyckoff_file)
-    if not os.path.exists(fname):
-        raise FileNotFoundError("The Wyckoff-position data file (%s) was not found; it is needed for adding the "
-                                "interstices (-ai). Give it with --wyckoff_file or $CONFIG_ENUM_WYCKOFF." % fname)
-    out('\nReading %s...' % fname)
     # Only the Wyckoff positions without free parameters are used: a position such as (x,x,x) is a line of possible
     # sites, and any single value of x (the original script used 0) would be an arbitrary choice.
-    data = read_wyckoff_data(fname, SG.no, fixed_only=True)
+    wyckoff_file = wyckoff_file or os.environ.get('CONFIG_ENUM_WYCKOFF')
+    if wyckoff_file:
+        if not os.path.exists(wyckoff_file):
+            raise FileNotFoundError("The Wyckoff-position data file (%s) was not found." % wyckoff_file)
+        out('\nReading %s...' % wyckoff_file)
+        data = read_wyckoff_data(wyckoff_file, SG.no, fixed_only=True)
+    else:
+        data = wyckoff_positions(SG.no, fixed_only=True)
 
     data2 = {}
     for key in list(data.keys()):
