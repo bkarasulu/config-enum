@@ -1,0 +1,17 @@
+# Tutorial 2: Li vacancies in LiCoO2 with the MACE-MP-0 foundation model
+[structure]
+inpf = "LiCoO2.cif"
+rep = [2, 2, 1]          # 12 formula units
+
+[enumeration]
+wycklist = ["12b"]       # the Li sites (3b in the conventional cell; see: config_enum -i LiCoO2.cif -r 2 2 1 -dry -dt Va -nd 1)
+aType = ["Li"]
+dType = "Va"
+noDopants = "1:3"        # one, two and three vacancies (all at once, no sequential doping)
+
+[calculation]
+mlip = "mace"
+mlip_model = "small"     # MACE-MP-0 small; e.g. "medium-mpa-0" for production runs
+optimise = true
+fmax = 0.05
+steps = 200

@@ -1,0 +1,68 @@
+site_name: config_enum
+site_description: Automated enumeration of defect configurations with VASP, CASTEP, ASE and machine-learning potentials
+repo_url: https://github.com/bkarasulu/config-enum
+docs_dir: docs
+exclude_docs: |
+  gen_cli.py
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+  palette:
+    - scheme: default
+      toggle: {icon: material/brightness-7, name: Dark mode}
+    - scheme: slate
+      toggle: {icon: material/brightness-4, name: Light mode}
+markdown_extensions:
+  - admonition
+  - tables
+  - toc: {permalink: true}
+  - pymdownx.superfences
+  - pymdownx.arithmatex: {generic: true}
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            docstring_options:
+              warn_unknown_params: false
+              warn_missing_types: false
+            show_source: true
+            show_root_heading: true
+            members_order: source
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: installation.md
+      - Quick start: quickstart.md
+      - Tutorials: tutorials.md
+  - User guide:
+      - Workflow and output files: workflow.md
+      - Theory and definitions: theory.md
+      - Command-line reference: cli.md
+      - Input files: input_files.md
+      - DFT codes (VASP, CASTEP): dft_codes.md
+      - Machine-learning potentials: mlip.md
+  - Python API:
+      - Overview: python_api.md
+      - config_enum.workflow: api/workflow.md
+      - config_enum.enumeration: api/enumeration.md
+      - config_enum.symmetry: api/symmetry.md
+      - config_enum.thermo: api/thermo.md
+      - config_enum.calculators: api/calculators.md
+      - config_enum.casm: api/casm.md
+      - config_enum.io: api/io.md
+      - config_enum.utils: api/utils.md
+      - config_enum.geometry: api/geometry.md
+      - config_enum.log: api/log.md
+  - Development:
+      - Package layout and migration: package_layout.md
+      - Testing and contributing: development.md
+      - Fixed bugs and known issues: known_issues.md
+      - Changelog: changelog.md

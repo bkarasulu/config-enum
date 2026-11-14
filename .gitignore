@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Large / licensed VASP outputs (POTCARs must not be redistributed)
+POTCAR
+WAVECAR
+CHGCAR
+CHG
+DOSCAR
+EIGENVAL
+vasprun.xml
+PCDAT
+PROCAR
+LOCPOT
+ELFCAR
+WAVEDER
+
+# Run directories and files created by config_enum
+/Step[0-9]*/
+/results.json
+/Tutorials/*/Step[0-9]*/
+/Tutorials/*/results.json
+/Tutorials/*/config_enum.log
+
+# documentation build
+/site/

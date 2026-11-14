@@ -1,0 +1,18 @@
+# Tutorial 1: Au in fcc Cu with the EMT potential (runs in a few seconds)
+[structure]
+inpf = "Cu.cif"
+rep = [2, 2, 2]          # 2x2x2 supercell of the cubic cell: 32 Cu atoms
+
+[enumeration]
+aType = ["Cu"]           # all Cu sites can be doped
+dType = "Au"             # the dopant ("Va" for vacancies)
+noDopants = 4            # four Au atoms in total ...
+seq = 1                  # ... added one at a time (sequential doping)
+seqpick = 2              # the two best configurations of each step are passed on to the next step
+seqtype = "E"            # best = lowest (reduced) energy
+
+[calculation]
+ase_pot = "EMT"
+optimise = true          # relax the atoms of each configuration
+fmax = 0.02
+temp = 300               # temperature of the configurational statistics (K)
