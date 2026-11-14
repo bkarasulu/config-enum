@@ -24,7 +24,7 @@ from . import casm
 from .calculators.vasp import make_potcar
 from .enumeration import (PARENT_ARRAY, apply_dopants, canonical_keys, changed_sites, enumerate_configs, parse_exclude_list,
                           parse_modify, select_atoms, set_parent_sites)
-from .io import read_struct, write_res_result, write_struct
+from .io import partial_occupancies, read_struct, write_res_result, write_struct
 from .log import debug, say, warn
 from .symmetry import (find_interstices, find_primitive_cell, get_equivalent_sites, get_symmetry, identity_symmetry,
                        print_equivalent_sites, spacegroup_number, spacegroup_string)
@@ -269,6 +269,11 @@ class EnumWorkflow:
             atoms = inp.atoms.copy()
         else:
             atoms = read_struct(inp.path if os.path.isabs(inp.path) else os.path.join(self.base, inp.path), cfg.itype)
+            partial = partial_occupancies(atoms)
+            if partial:
+                say("Partially occupied sites in %s (all sites are treated as occupied; use vacancies, -dt Va, to remove atoms):" % inp.path)
+                for sym, o, n in partial:
+                    say("  %s: %d sites with occupancy %.3g (%.1f atoms; %.1f to remove)" % (sym, n, o, n * o, n * (1 - o)))
 
         # Find the potential interstices/vacancies, checking the Wyckoff site list for the space group. This must be
         # done before finding the primitive and repetitions

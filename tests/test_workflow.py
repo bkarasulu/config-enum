@@ -244,3 +244,15 @@ def test_several_input_files(tmp_path, cu_bulk):
     assert {c.root for c in res.steps[1].configs} == {0, 1}
     text = (tmp_path / 'Step2' / 'degeneracies').read_text()
     assert 'Step1/input_0/config_0.res' in text and 'Step1/input_1/config_0.res' in text
+
+
+def test_partial_occupancies(tmp_path, capsys):
+    from ase.spacegroup import crystal
+
+    from config_enum.io import partial_occupancies, read_struct
+    atoms = crystal(['Na', 'Cl'], [(0, 0, 0), (0.5, 0.5, 0.5)], spacegroup=225, cellpar=[5.64] * 3 + [90] * 3, occupancies=[0.5, 1])
+    ase.io.write(tmp_path / "NaCl.cif", atoms)
+    assert partial_occupancies(read_struct(str(tmp_path / "NaCl.cif"))) == [('Na', 0.5, 4)]
+    res = run(tmp_path, 'NaCl.cif', prog='lj', aType=['Na'], dType='Va', noDopants=[2])
+    assert "Na: 4 sites with occupancy 0.5 (2.0 atoms; 2.0 to remove)" in capsys.readouterr().out
+    assert len(res.configs) == 1 and res.configs[0].degeneracy == 6 and res.configs[0].atoms.get_chemical_formula() == 'Cl4Na2'

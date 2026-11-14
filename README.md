@@ -74,6 +74,9 @@ The tutorials in [`Tutorials/`](Tutorials/README.md) are:
 2. Li vacancies in LiCoO2 with MACE.
 3. The Python API.
 4. Li vacancies in LiCoO2 with VASP (inputs and job set-up).
+5. Point defects in Li2S: vacancy pairs, Cl doping with charge compensation, Frenkel pairs.
+6. Ordered models of Li3PS4 from its partially occupied Li sites.
+7. Li7La3Zr2O12 (LLZO) by sequential doping over 32 steps.
 
 ## Documentation
 

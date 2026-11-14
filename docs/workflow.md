@@ -28,6 +28,11 @@ At the end of the step the configurations of all its input structures are sorted
 - The reference is an atom type, or `dopant` for the doped (or vacant) sites of the configuration.
 - `replace ... with Va` and `remove` delete the atoms.
 - Several statements are separated by `;` and applied in order.
+- If several atoms are at the same distance, `nearest` takes them in the order of the structure; when they are not equivalent by symmetry, the choice is arbitrary. In that case enumerate the second defect in a separate run instead.
+
+## Partially occupied sites
+
+Structures with partial occupancies (e.g. CIF files from a database) are read with all sites occupied. config_enum lists these sites and the number of atoms to remove; make the ordered models with `-dt Va` on those sites (see Tutorials 6 and 7).
 
 Examples: `-mod 'remove Li nearest 1 of Al'` (one Li removed for each Al), `-mod 'replace O within 2.2 of dopant with F'`.
 

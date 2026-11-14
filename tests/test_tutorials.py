@@ -70,3 +70,50 @@ def test_tutorial_02_mace(tmp_path):
     assert all(c["energy"] < 0 and not c["failed"] for c in configs)
     for n in (1, 2, 3):
         assert sum(c["prob"] for c in configs if c["nD"] == n) == pytest.approx(1.)
+
+
+def _configs(d, step=0):
+    return json.loads((d / "results.json").read_text())["steps"][step]["configs"]
+
+
+def test_tutorial_05_li2s_defects(tmp_path):
+    """The three runs of Tutorial 5 (with the LJ potential in place of MACE)."""
+    d = _copy("05_Li2S_defects", tmp_path)
+    lj = ["-pot", "LJ", "-ow"]
+    _config_enum(["-i", "Li2S.cif", "-r", "2", "2", "2", "-at", "Li", "-dt", "Va", "-nd", "2"] + lj, d)
+    assert [c["degeneracy"] for c in _configs(d)] == [384, 192, 128, 96, 384, 128, 384, 96, 192, 32]
+    _config_enum(["-i", "Li2S.cif", "-r", "2", "2", "2", "-at", "S", "-dt", "Cl", "-nd", "1", "-mod", "remove Li nearest 1 of Cl"] + lj, d)
+    assert [(c["degeneracy"], c["formula"]) for c in _configs(d)] == [(32, "ClLi63S31")]
+    out = _config_enum(["-i", "Li2S.cif", "-ai", "-at", "X", "-dt", "Li", "-nd", "1"] + lj, d)
+    assert [(c["degeneracy"], c["formula"]) for c in _configs(d)] == [(4, "Li9S4"), (24, "Li9S4")]
+    _config_enum(["-i", "Li2S.cif", "-ai", "-r", "2", "2", "2", "-at", "X", "-wl", "32b", "-dt", "Li", "-nd", "1",
+                  "-mod", "remove Li nearest 1 of dopant"] + lj, d)
+    assert [(c["degeneracy"], c["formula"]) for c in _configs(d)] == [(32, "Li64S32")]
+    assert "New space group after adding all interstices:  Fm-3m (225)" in out
+
+
+def test_tutorial_06_li3ps4_site_disorder(tmp_path):
+    d = _copy("06_Li3PS4_site_disorder", tmp_path)
+    out = _config_enum(["--input", "input.toml", "-pot", "LJ"], d)
+    assert "Li: 4 sites with occupancy 0.28 (1.1 atoms; 2.9 to remove)" in out and "70 configuration(s) found" in out
+    configs = _configs(d)
+    assert [c["degeneracy"] for c in configs] == [1, 8, 8, 4, 4, 4, 4, 2, 4, 2, 4, 4, 4, 8, 8, 1]
+    assert all(c["formula"] == "Li12P4S16" for c in configs)
+    assert configs[0]["spacegroup"] == configs[-1]["spacegroup"] == "Pnma (62)"
+
+
+def test_tutorial_07_llzo(tmp_path):
+    d = _copy("07_LLZO_sequential", tmp_path)
+    out = _config_enum(["-i", "LLZO.cif", "-prim", "-dry", "-dt", "Va", "-nd", "1"], d)
+    assert "24d: ['Li68'" in out and "96h: ['Li80'" in out and "Li: 96 sites with occupancy 0.28" in out
+    # the first steps of the sequential doping (LJ in place of MACE)
+    _config_enum(["--input", "input.toml", "-pot", "LJ", "-nd", "3"], d)
+    steps = json.loads((d / "results.json").read_text())["steps"]
+    assert [len(s["configs"]) for s in steps][0] == 2 and len(steps) == 3
+    assert [c["degeneracy"] for c in steps[0]["configs"]] == [12, 48]  # the 24d and 96h sites of the primitive cell
+    assert steps[2]["configs"][0]["formula"] == "La12Li57O48Zr8" and len(steps[2]["picked"]) == 2
+    # the example of the original script: CASM files for up to two vacancies on the 96h sites
+    _config_enum(["-i", "LLZO.cif", "-prim", "-at", "Li", "-wl", "96h", "-dt", "Va", "-nd", "0:2", "--casm", "-sf", "-ot", "vasp", "-o", "POS", "-ow"], d)
+    assert [sum(1 for c in _configs(d) if c["nD"] == n) for n in (0, 1, 2)] == [1, 1, 33]
+    cl = json.loads((d / "Step1" / "config_list.json").read_text())["supercells"]["SCEL1_1_1_1_0_0_0"]
+    assert len(cl) == 35 and (d / "Step1" / "input_0" / "34" / "POS").exists()

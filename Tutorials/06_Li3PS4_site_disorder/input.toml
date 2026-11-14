@@ -1,0 +1,9 @@
+# Tutorial 6: ordered models of Li3PS4 (Pnma) from its partially occupied Li sites
+[structure]
+inpf = "Li3PS4.cif"      # 16 Li sites for 12 Li atoms: 8d (full), 4b (0.68) and 4c (0.28)
+
+[enumeration]
+aType = ["Li"]
+wycklist = ["4b", "4c"]  # only the partially occupied Li sites; P and S on 4c are not selected because of aType
+dType = "Va"
+noDopants = 4            # 16 - 4 = 12 Li: Li3PS4 with Z = 4

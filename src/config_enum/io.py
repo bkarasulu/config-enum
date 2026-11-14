@@ -41,3 +41,17 @@ def write_res_result(fname, atoms, energy, pressure=0., spacegroup="P1", name=No
                 'energy': energy, 'spacegroup': spacegroup, 'times_found': 1}
     res = ase.io.res.Res(out, name=out.info['name'], pressure=pressure, energy=energy, spacegroup=spacegroup, times_found=1)
     res.write_file(fname, write_info=False, significant_figures=6)
+
+
+def partial_occupancies(atoms):
+    """Partially occupied sites of a structure read from a CIF file: [(atom type, occupancy, number of sites), ...]."""
+    occ = atoms.info.get('occupancy')
+    kinds = atoms.arrays.get('spacegroup_kinds')
+    if not occ or kinds is None:
+        return []
+    counts = {}
+    for k in kinds:
+        for sym, o in occ.get(str(int(k)), {}).items():
+            if abs(float(o) - 1.) > 1e-6:
+                counts[(sym, float(o))] = counts.get((sym, float(o)), 0) + 1
+    return [(sym, o, n) for (sym, o), n in sorted(counts.items())]
