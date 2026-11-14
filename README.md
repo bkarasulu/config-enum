@@ -84,6 +84,10 @@ The full documentation is built with `pip install -e ".[docs]" && mkdocs serve`.
 - `docs/package_layout.md`: package layout and where the parts of the original script are now.
 - `docs/known_issues.md`: bugs of the original script that were fixed, changes in behaviour, and open issues.
 
+## Data sources
+
+The Wyckoff positions used for the interstitial sites (`-ai`) are those of *International Tables for Crystallography, Vol. A, 5th ed., edited by Th. Hahn (Kluwer, Dordrecht, 2005)*, taken from the `wyckoff.dat` file of VESTA.
+
 ## Licence
 
 config_enum is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. See [`LICENSE`](LICENSE).
