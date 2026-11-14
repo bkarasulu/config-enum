@@ -4,7 +4,8 @@ WYCKOFF_POSITIONS[(space-group number, setting)] = (Hermann-Mauguin symbol, posi
 (label, site symmetry, coordinates), e.g. ('8c', '-4 3 m', '(1/4,1/4,1/4) (1/4,1/4,3/4)'). The positions are listed from
 the general one to the most special one, and the coordinates do not include the centring translations.
 
-The data are those of the wyckoff.dat file used by the original script (taken from VESTA).
+Source: International Tables for Crystallography, Vol. A, 5th ed., edited by Th. Hahn (Kluwer, Dordrecht, 2005), through the wyckoff.dat
+file of VESTA, which the original script read.
 """
 
 WYCKOFF_POSITIONS = {

@@ -47,7 +47,7 @@ config_enum -i Cu.cif -ai -at X -wl 4b -dt H -nd 2 -seq 1   # octahedral sites o
 
 Only the positions without free parameters are added (e.g. `4b`, `8c` and `24d` in Fm-3m, `8b`, `16c` and `16d` in diamond). A position such as (x,x,x) is a line of possible sites; add atoms on such sites to the input structure yourself (as `X` atoms, selected with `-at X` without `-ai`).
 
-The positions of all space groups and settings are part of the code (`config_enum/wyckoff_positions.py`, the content of the `wyckoff.dat` file of the original script):
+The positions of all space groups and settings are part of the code (`config_enum/wyckoff_positions.py`). They are those of *International Tables for Crystallography, Vol. A, 5th ed., edited by Th. Hahn (Kluwer, Dordrecht, 2005)*, taken from the `wyckoff.dat` file of VESTA that the original script read:
 
 ```python
 from config_enum.symmetry import wyckoff_positions
